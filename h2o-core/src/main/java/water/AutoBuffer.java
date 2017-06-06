@@ -655,10 +655,13 @@ public final class AutoBuffer {
   /** Put as needed to keep from overflowing the ByteBuffer. */
   private ByteBuffer putSp( int sz ) {
     assert !_read;
-    if ((_h2o==null && _chan == null) || (_bb.hasArray() && _bb.capacity() < BBP_BIG._size))
-      expandByteBuffer(sz);
-    else
-      sendPartial();
+    if (sz > _bb.remaining()) {
+      if ((_h2o == null && _chan == null) || (_bb.hasArray() && _bb.capacity() < BBP_BIG._size))
+        expandByteBuffer(sz);
+      else
+        sendPartial();
+      assert sz <= _bb.remaining();
+    }
     return _bb;
   }
 
