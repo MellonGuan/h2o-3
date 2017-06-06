@@ -1,5 +1,7 @@
 package water;
 
+import org.apache.commons.io.output.NullOutputStream;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.Serializable;
@@ -11,7 +13,20 @@ import static org.junit.Assert.*;
  * 
  * Created by vpatryshev on 2/24/17.
  */
-public class AutoBufferTest {
+public class AutoBufferTest extends TestUtil {
+
+  @BeforeClass()
+  public static void setup() { stall_till_cloudsize(1); }
+
+  @Test
+  public void testOOM() throws Exception {
+    AutoBuffer ab = new AutoBuffer(NullOutputStream.NULL_OUTPUT_STREAM, true);
+    int size = Integer.MAX_VALUE - 1064;
+    byte[] data = new byte[size - 100];
+    ab.putA1(data);
+    ab.put1(1);
+    ab.close();
+  }
 
   @Test
   public void testIsClosed() throws Exception {
