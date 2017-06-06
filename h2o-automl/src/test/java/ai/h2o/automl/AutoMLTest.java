@@ -98,4 +98,27 @@ public class AutoMLTest extends TestUtil {
       if(fr != null) fr.remove();
     }
   }
+
+  @Test public void prostateTest() {
+    AutoML aml=null;
+    Frame fr=null;
+    try {
+      AutoMLBuildSpec autoMLBuildSpec = new AutoMLBuildSpec();
+      fr = parse_test_file("./smalldata/prostate/prostate.csv");
+      autoMLBuildSpec.input_spec.training_frame = fr._key;
+      autoMLBuildSpec.input_spec.response_column = "AGE";
+      autoMLBuildSpec.build_control.loss = "AUTO";
+      autoMLBuildSpec.build_control.stopping_criteria.set_max_runtime_secs(20);
+
+      aml = AutoML.makeAutoML(Key.<AutoML>make(), new Date(), autoMLBuildSpec);
+      AutoML.startAutoML(aml);
+      aml.get();
+
+    } finally {
+      // cleanup
+      if(aml!=null) aml.deleteWithChildren();
+      if(fr != null) fr.remove();
+    }
+  }
+
 }
