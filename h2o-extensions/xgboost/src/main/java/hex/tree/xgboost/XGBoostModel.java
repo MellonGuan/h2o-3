@@ -12,7 +12,7 @@ import water.fvec.Frame;
 import water.fvec.NewChunk;
 import water.fvec.Vec;
 import water.util.Log;
-
+import hex.ModelMetrics;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -434,12 +434,23 @@ public class XGBoostModel extends Model<XGBoostModel, XGBoostModel.XGBoostParame
   public Frame score(Frame fr, String destination_key, Job j, boolean computeMetrics) throws IllegalArgumentException {
     Frame adaptFr = new Frame(fr);
     computeMetrics = computeMetrics && (!isSupervised() || (adaptFr.vec(_output.responseName()) != null && !adaptFr.vec(_output.responseName()).isBad()));
-    String[] msg = adaptTestForTrain(adaptFr,true, computeMetrics);   // Adapt
+    String[] msg = adaptTestForTrain(adaptFr,true, computeMetrics,true);   // Adapt
+    if (msg.length > 0) {
+      for (String s : msg)
+        Log.warn(s);
+    }
     try {
       DMatrix trainMat = convertFrametoDMatrix( model_info()._dataInfoKey, adaptFr,
           _parms._response_column, _parms._weights_column, _parms._fold_column, null, _output._sparse);
       ModelMetrics[] mm = new ModelMetrics[1];
       Frame preds = makePreds(model_info()._booster, trainMat, mm, Key.<Frame>make(destination_key));
+      //Update model
+      if (computeMetrics){
+        final Key modelKey = ModelMetrics.buildKey(this,fr); //Make Key for Model Metrics
+        mm[0]._key = modelKey;
+        this.addModelMetrics(mm[0]);
+        DKV.put(this);
+      }
       DKV.put(preds);
       return preds;
     } catch (XGBoostError xgBoostError) {

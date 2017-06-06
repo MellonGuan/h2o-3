@@ -850,6 +850,16 @@ public abstract class Model<M extends Model<M,P,O>, P extends Model.Parameters, 
    *  Throws {@code IllegalArgumentException} if no columns are in common, or
    *  if any factor column has no levels in common.
    */
+  public String[] adaptTestForTrain(Frame test, boolean expensive, boolean computeMetrics,boolean catEncoded) {
+    return adaptTestForTrain(
+            test,
+            _output._origNames,
+            _output._origDomains,
+            _output._names,
+            _output._domains,
+            _parms, expensive, computeMetrics, _output.interactions(), getToEigenVec(), _toDelete, catEncoded);
+  }
+
   public String[] adaptTestForTrain(Frame test, boolean expensive, boolean computeMetrics) {
     return adaptTestForTrain(
             test,

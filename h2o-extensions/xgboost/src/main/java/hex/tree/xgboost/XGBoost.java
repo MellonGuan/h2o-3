@@ -58,6 +58,11 @@ public class XGBoost extends ModelBuilder<XGBoostModel,XGBoostModel.XGBoostParam
   // FIXME: moved into XGBoost core extension (see PUBDEV-4548)
   //
   static boolean haveBackend() {
+    //Check if multinode (XGBoost will not work for multinode)
+    if (H2O.getCloudSize() > 1) {
+      Log.info("Detected more than 1 H2O node. H2O only supports XGBoost in single node setting.");
+      return false;
+    }
     // Check if some native library was loaded
     try {
       String libName = NativeLibLoader.getLoadedLibraryName();

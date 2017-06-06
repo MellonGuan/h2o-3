@@ -214,6 +214,7 @@ public class Leaderboard extends Keyed<Leaderboard> {
           if (mm == null) {
             Frame preds = aModel.score(leaderboardFrame);
             mm = ModelMetrics.getFromDKV(aModel, leaderboardFrame);
+            preds.delete();
           }
           old.leaderboard_set_metrics.put(mm._key, mm);
         }

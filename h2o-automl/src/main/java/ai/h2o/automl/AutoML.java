@@ -16,6 +16,7 @@ import hex.splitframe.ShuffleSplitFrame;
 import hex.tree.SharedTreeModel;
 import hex.tree.drf.DRFModel;
 import hex.tree.gbm.GBMModel;
+import hex.tree.xgboost.XGBoostModel;
 import hex.deepwater.DeepWaterModel;
 import water.*;
 import water.api.schemas3.ImportFilesV3;
@@ -631,6 +632,18 @@ public final class AutoML extends Lockable<AutoML> implements TimedH2ORunnable {
     return false;
   }
 
+  Job<XGBoostModel>defaultXgBoost(){
+    if (exceededSearchLimits("XGBoost")) return null;
+
+    XGBoostModel.XGBoostParameters xgBoostParameters = new XGBoostModel.XGBoostParameters();
+    setCommonModelBuilderParams(xgBoostParameters);
+
+    xgBoostParameters._stopping_tolerance = this.buildSpec.build_control.stopping_criteria.stopping_tolerance();
+
+    Job xgboostJob = trainModel(null,"xgboost", xgBoostParameters);
+    return xgboostJob;
+
+  }
   Job<DRFModel>defaultRandomForest() {
     if (exceededSearchLimits("DRF")) return null;
 
@@ -867,6 +880,12 @@ public final class AutoML extends Lockable<AutoML> implements TimedH2ORunnable {
     job.update(20, "Computed dataset metadata");
 
     isClassification = frameMetadata.isClassification();
+
+    ///////////////////////////////////////////////////////////
+    // build a XGBoost with default settings...
+    ///////////////////////////////////////////////////////////
+    Job<XGBoostModel>defaultXgboostJob = defaultXgBoost();
+    pollAndUpdateProgress(Stage.ModelTraining, "Default XGBoost build", 50, this.job(), defaultXgboostJob, JobType.ModelBuild);
 
     ///////////////////////////////////////////////////////////
     // build a fast RF with default settings...
